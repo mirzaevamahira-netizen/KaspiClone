@@ -17,13 +17,14 @@ jobs:
           java-version: '17'
           distribution: 'temurin'
 
-      - name: Setup Gradle
-        uses: gradle/actions/setup-gradle@v3
-
-      - name: Build Debug APK
-        run: ./gradlew assembleDebug --stacktrace
+      - name: Build Debug APK with System Gradle
+        run: gradle assembleDebug --stacktrace
 
       - name: Upload APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: KaspiSim-APK
+          path: app/build/outputs/apk/debug/app-debug.apk
         uses: actions/upload-artifact@v4
         with:
           name: KaspiSim-APK
