@@ -1,31 +1,26 @@
 name: Build APK
-
-on:
-  workflow_dispatch:
-
+on: workflow_dispatch
 jobs:
   build:
     runs-on: ubuntu-latest
-
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-
-      - name: Set up JDK 17
-        uses: actions/setup-java@v4
-        with:
-          java-version: '17'
-          distribution: 'temurin'
-
-      - name: Build Debug APK with System Gradle
-        run: gradle assembleDebug --stacktrace
-
-      - name: Upload APK
-        uses: actions/upload-artifact@v4
-        with:
-          name: KaspiSim-APK
-          path: app/build/outputs/apk/debug/app-debug.apk
-        uses: actions/upload-artifact@v4
-        with:
-          name: KaspiSim-APK
-          path: app/build/outputs/apk/debug/app-debug.apk
+    - uses: actions/checkout@v4
+    
+    - uses: subosito/flutter-action@v2
+      with:
+        flutter-version: '3.24.0'
+        channel: 'stable'
+    
+    - name: Create Android files
+      run: flutter create --platforms=android --project-name=kaspi_clone .
+    
+    - name: Get dependencies
+      run: flutter pub get
+    
+    - name: Build APK
+      run: flutter build apk --debug
+    
+    - uses: actions/upload-artifact@v4
+      with:
+        name: kaspi-apk
+        path: build/app/outputs/flutter-apk/app-debug.apk
