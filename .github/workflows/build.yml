@@ -30,11 +30,18 @@ jobs:
       - name: Recreate Android project
         run: flutter create --platforms=android .
 
-      - name: Fix Android SDK versions for Plugins
+      - name: Force SDK 34 in build.gradle
         run: |
-          sed -i 's/compileSdk flutter\.compileSdkVersion/compileSdk 34/g' android/app/build.gradle || true
-          sed -i 's/targetSdk flutter\.targetSdkVersion/targetSdk 34/g' android/app/build.gradle || true
-          sed -i 's/minSdk flutter\.minSdkVersion/minSdk 21/g' android/app/build.gradle || true
+          # Принудительно меняем compileSdk и targetSdk на 34, а minSdk на 21
+          sed -i 's/compileSdk [0-9]*/compileSdk 34/g' android/app/build.gradle
+          sed -i 's/targetSdk [0-9]*/targetSdk 34/g' android/app/build.gradle
+          sed -i 's/minSdk [0-9]*/minSdk 21/g' android/app/build.gradle
+          
+          # На случай если там написано через переменные Flutter
+          sed -i 's/compileSdk flutter\.compileSdkVersion/compileSdk 34/g' android/app/build.gradle
+          sed -i 's/targetSdk flutter\.targetSdkVersion/targetSdk 34/g' android/app/build.gradle
+          sed -i 's/minSdk flutter\.minSdkVersion/minSdk 21/g' android/app/build.gradle
+
           echo "android.useAndroidX=true" >> android/gradle.properties
           echo "android.enableJetifier=true" >> android/gradle.properties
 
