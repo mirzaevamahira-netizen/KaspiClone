@@ -30,39 +30,21 @@ jobs:
       - name: Recreate Android project
         run: flutter create --platforms=android .
 
-      - name: Fix SDK and Give Enough Heap Space
+      - name: Clean Gradle Properties for Stability
         run: |
-          cat << 'EOF' >> android/build.gradle
-          subprojects {
-              afterEvaluate {
-                  if (plugins.hasPlugin('com.android.application') || plugins.hasPlugin('com.android.library')) {
-                      android {
-                          compileSdkVersion 36
-                          defaultConfig {
-                              minSdkVersion 24
-                          }
-                      }
-                  }
-              }
-          }
-          EOF
-          
           echo "android.useAndroidX=true" >> android/gradle.properties
           echo "android.enableJetifier=true" >> android/gradle.properties
-          # Выделяем 4 ГБ памяти, чтобы Jetifier не падал по Java heap space
           echo "org.gradle.jvmargs=-Xmx4096m -XX:MaxMetaspaceSize=1024m -Dfile.encoding=UTF-8" >> android/gradle.properties
-          echo "org.gradle.parallel=true" >> android/gradle.properties
-          echo "kotlin.daemon.jvm.options=-Xmx2048m" >> android/gradle.properties
 
-      - name: Install Android SDK 36 Platform
+      - name: Install Android SDK 34 and 36 Platforms
         run: |
-          yes | /usr/local/lib/android/sdk/cmdline-tools/latest/bin/sdkmanager "platforms;android-36" || true
+          yes | /usr/local/lib/android/sdk/cmdline-tools/latest/bin/sdkmanager "platforms;android-34" "platforms;android-36" || true
 
       - name: Get dependencies
         run: flutter pub get
 
       - name: Build APK
-        run: flutter build apk --debug
+        run: flutter build apk --debug --target-platform android-arm,android-arm64,android-x64
 
       - name: Upload APK Artifact
         uses: actions/upload-artifact@v4
