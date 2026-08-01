@@ -30,15 +30,47 @@ jobs:
       - name: Recreate Android project
         run: flutter create --platforms=android .
 
-      - name: Patch SDK in native build.gradle.kts
+      - name: Write clean build.gradle.kts with SDK 36
         run: |
-          FILE="android/app/build.gradle.kts"
-          
-          # Меняем дефолтные версии на 36 прямо в сгенерированном файле Flutter
-          sed -i 's/compileSdk = [0-9]*/compileSdk = 36/g' "$FILE"
-          sed -i 's/targetSdk = [0-9]*/targetSdk = 36/g' "$FILE"
-          sed -i 's/compileSdk = flutter\.compileSdkVersion/compileSdk = 36/g' "$FILE"
-          sed -i 's/targetSdk = flutter\.targetSdkVersion/targetSdk = 36/g' "$FILE"
+          cat << 'EOF' > android/app/build.gradle.kts
+          plugins {
+              id("com.android.application")
+              id("kotlin-android")
+              id("dev.flutter.flutter-gradle-plugin")
+          }
+
+          android {
+              namespace = "com.example.kaspi_clone"
+              compileSdk = 36
+
+              compileOptions {
+                  sourceCompatibility = JavaVersion.VERSION_17
+                  targetCompatibility = JavaVersion.VERSION_17
+              }
+
+              kotlinOptions {
+                  jvmTarget = "17"
+              }
+
+              defaultConfig {
+                  applicationId = "com.example.kaspi_clone"
+                  minSdk = 21
+                  targetSdk = 36
+                  versionCode = flutter.versionCode.toInt()
+                  versionName = flutter.versionName
+              }
+
+              buildTypes {
+                  release {
+                      signingConfig = signingConfigs.getByName("debug")
+                  }
+              }
+          }
+
+          flutter {
+              source = "../.."
+          }
+          EOF
 
           echo "android.useAndroidX=true" >> android/gradle.properties
           echo "android.enableJetifier=true" >> android/gradle.properties
