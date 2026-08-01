@@ -30,23 +30,36 @@ jobs:
       - name: Recreate Android project
         run: flutter create --platforms=android .
 
-      - name: Configure SDK 36 for all modules
+      - name: Configure SDK, MinSDK 24 and Fix OOM
         run: |
-          # Переопределяем SDK 36 через корневой android/build.gradle без трогания файлов app/
+          # 1. Форсируем SDK 36 и minSdk 24 для всех сторонних плагинов
           cat << 'EOF' >> android/build.gradle
           subprojects {
               afterEvaluate {
                   if (plugins.hasPlugin('com.android.application') || plugins.hasPlugin('com.android.library')) {
                       android {
                           compileSdkVersion 36
+                          defaultConfig {
+                              minSdkVersion 24
+                          }
                       }
                   }
               }
           }
           EOF
 
+          # 2. Безопасно обновляем app/build.gradle.kts
+          FILE="android/app/build.gradle.kts"
+          sed -i 's/compileSdk = flutter.compileSdkVersion/compileSdk = 36/g' "$FILE"
+          sed -i 's/compileSdk = [0-9]*/compileSdk = 36/g' "$FILE"
+          sed -i 's/minSdk = flutter.minSdkVersion/minSdk = 24/g' "$FILE"
+          sed -i 's/minSdk = [0-9]*/minSdk = 24/g' "$FILE"
+
+          # 3. Увеличиваем память для сборки C++ и ускоряем процесс
           echo "android.useAndroidX=true" >> android/gradle.properties
           echo "android.enableJetifier=true" >> android/gradle.properties
+          echo "org.gradle.jvmargs=-Xmx4096m -XX:MaxMetaspaceSize=1024m -Dfile.encoding=UTF-8" >> android/gradle.properties
+          echo "org.gradle.parallel=true" >> android/gradle.properties
 
       - name: Install Android SDK 36 Platform
         run: |
@@ -55,8 +68,8 @@ jobs:
       - name: Get dependencies
         run: flutter pub get
 
-      - name: Build APK
-        run: flutter build apk --debug
+      - name: Build APK (Verbose logging)
+        run: flutter build apk --debug --verbose
 
       - name: Upload APK Artifact
         uses: actions/upload-artifact@v4
