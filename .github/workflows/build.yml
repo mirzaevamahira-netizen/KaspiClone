@@ -30,47 +30,13 @@ jobs:
       - name: Recreate Android project
         run: flutter create --platforms=android .
 
-      - name: Write clean build.gradle.kts with SDK 36
+      - name: Force SDK 36 in default build.gradle.kts
         run: |
-          cat << 'EOF' > android/app/build.gradle.kts
-          plugins {
-              id("com.android.application")
-              id("kotlin-android")
-              id("dev.flutter.flutter-gradle-plugin")
-          }
-
-          android {
-              namespace = "com.example.kaspi_clone"
-              compileSdk = 36
-
-              compileOptions {
-                  sourceCompatibility = JavaVersion.VERSION_17
-                  targetCompatibility = JavaVersion.VERSION_17
-              }
-
-              kotlinOptions {
-                  jvmTarget = "17"
-              }
-
-              defaultConfig {
-                  applicationId = "com.example.kaspi_clone"
-                  minSdk = 21
-                  targetSdk = 36
-                  versionCode = flutter.versionCode.toInt()
-                  versionName = flutter.versionName
-              }
-
-              buildTypes {
-                  release {
-                      signingConfig = signingConfigs.getByName("debug")
-                  }
-              }
-          }
-
-          flutter {
-              source = "../.."
-          }
-          EOF
+          FILE="android/app/build.gradle.kts"
+          
+          # Заменяем только compileSdk на 36 в дефолтном файле Flutter
+          sed -i 's/compileSdk = flutter.compileSdkVersion/compileSdk = 36/g' "$FILE"
+          sed -i 's/compileSdk = [0-9]*/compileSdk = 36/g' "$FILE"
 
           echo "android.useAndroidX=true" >> android/gradle.properties
           echo "android.enableJetifier=true" >> android/gradle.properties
