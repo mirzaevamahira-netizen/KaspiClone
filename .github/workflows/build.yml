@@ -30,21 +30,50 @@ jobs:
       - name: Recreate Android project
         run: flutter create --platforms=android .
 
-      - name: Clean Gradle Properties for Stability
+      - name: Force SDK 36 and MinSDK 24 for ALL plugins & app
         run: |
+          # 1. Принудительно поднимаем SDK для всех сторонних модулей (решает проблему с nfc_manager)
+          cat << 'EOF' >> android/build.gradle
+          subprojects {
+              afterEvaluate {
+                  if (plugins.hasPlugin('com.android.application') || plugins.hasPlugin('com.android.library')) {
+                      android {
+                          compileSdkVersion 36
+                          defaultConfig {
+                              minSdkVersion 24
+                          }
+                      }
+                  }
+              }
+          }
+          EOF
+
+          # 2. Безопасно обновляем app/build.gradle.kts через Python без багов синтаксиса
+          python3 -c "
+          with open('android/app/build.gradle.kts', 'r') as f:
+              content = f.read()
+          import re
+          content = re.sub(r'compileSdk\s*=.*', 'compileSdk = 36', content)
+          content = re.sub(r'minSdk\s*=.*', 'minSdk = 24', content)
+          with open('android/app/build.gradle.kts', 'w') as f:
+              f.write(content)
+          "
+
+          # 3. Настройки производительности и памяти
           echo "android.useAndroidX=true" >> android/gradle.properties
           echo "android.enableJetifier=true" >> android/gradle.properties
           echo "org.gradle.jvmargs=-Xmx4096m -XX:MaxMetaspaceSize=1024m -Dfile.encoding=UTF-8" >> android/gradle.properties
+          echo "org.gradle.parallel=true" >> android/gradle.properties
 
-      - name: Install Android SDK 34 and 36 Platforms
+      - name: Install Android SDK 36 Platform
         run: |
-          yes | /usr/local/lib/android/sdk/cmdline-tools/latest/bin/sdkmanager "platforms;android-34" "platforms;android-36" || true
+          yes | /usr/local/lib/android/sdk/cmdline-tools/latest/bin/sdkmanager "platforms;android-36" || true
 
       - name: Get dependencies
         run: flutter pub get
 
       - name: Build APK
-        run: flutter build apk --debug --target-platform android-arm,android-arm64,android-x64
+        run: flutter build apk --debug
 
       - name: Upload APK Artifact
         uses: actions/upload-artifact@v4
