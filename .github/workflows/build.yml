@@ -30,9 +30,9 @@ jobs:
       - name: Recreate Android project
         run: flutter create --platforms=android .
 
-      - name: Force SDK 36 for ALL subprojects & plugins
+      - name: Configure SDK 36 for all modules
         run: |
-          # 1. Принудительно выставляем SDK 36 в корневом build.gradle для ВСЕХ плагинов (включая nfc_manager)
+          # Переопределяем SDK 36 через корневой android/build.gradle без трогания файлов app/
           cat << 'EOF' >> android/build.gradle
           subprojects {
               afterEvaluate {
@@ -44,11 +44,6 @@ jobs:
               }
           }
           EOF
-
-          # 2. Правим локальный app/build.gradle.kts
-          FILE="android/app/build.gradle.kts"
-          sed -i 's/compileSdk = [0-9]*/compileSdk = 36/g' "$FILE"
-          sed -i 's/compileSdk = flutter.compileSdkVersion/compileSdk = 36/g' "$FILE"
 
           echo "android.useAndroidX=true" >> android/gradle.properties
           echo "android.enableJetifier=true" >> android/gradle.properties
