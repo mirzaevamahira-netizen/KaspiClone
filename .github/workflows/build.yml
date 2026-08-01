@@ -30,7 +30,7 @@ jobs:
       - name: Recreate Android project
         run: flutter create --platforms=android .
 
-      - name: Fix SDK and STOP Memory Crashes
+      - name: Fix SDK and Give Enough Heap Space
         run: |
           cat << 'EOF' >> android/build.gradle
           subprojects {
@@ -49,10 +49,10 @@ jobs:
           
           echo "android.useAndroidX=true" >> android/gradle.properties
           echo "android.enableJetifier=true" >> android/gradle.properties
-          # Жестко ограничиваем оперативку, чтобы сервер не дох при сборке C++
-          echo "org.gradle.jvmargs=-Xmx2048m -Dfile.encoding=UTF-8" >> android/gradle.properties
-          echo "org.gradle.parallel=false" >> android/gradle.properties
-          echo "kotlin.daemon.jvm.options=-Xmx1024m" >> android/gradle.properties
+          # Выделяем 4 ГБ памяти, чтобы Jetifier не падал по Java heap space
+          echo "org.gradle.jvmargs=-Xmx4096m -XX:MaxMetaspaceSize=1024m -Dfile.encoding=UTF-8" >> android/gradle.properties
+          echo "org.gradle.parallel=true" >> android/gradle.properties
+          echo "kotlin.daemon.jvm.options=-Xmx2048m" >> android/gradle.properties
 
       - name: Install Android SDK 36 Platform
         run: |
