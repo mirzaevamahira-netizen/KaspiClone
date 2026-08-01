@@ -486,7 +486,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
                     const Text('Kaspi Gold', style: TextStyle(color: Colors.grey, fontSize: 16, fontWeight: FontWeight.w600)),
-                    const Icon(Icons.credit_card, color: Colors.gold, size: 40),
+                   const Icon(Icons.credit_card, color: Colors.amber, size: 40),
                   ],
                 ),
                 const SizedBox(height: 20),
