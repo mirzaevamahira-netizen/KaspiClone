@@ -30,21 +30,22 @@ jobs:
       - name: Recreate Android project
         run: flutter create --platforms=android .
 
-      - name: Force SDK 34 in build.gradle.kts
+      - name: Clean SDK configuration in build.gradle.kts
         run: |
-          # Ищем файл конфигурации (проверяем оба варианта: .gradle и .gradle.kts)
           FILE="android/app/build.gradle.kts"
-          if [ ! -f "$FILE" ]; then
-            FILE="android/app/build.gradle"
-          fi
+          
+          # Заменяем переменные flutter на конкретные цифры чистым способом
+          sed -i 's/compileSdk = flutter\.compileSdkVersion/compileSdk = 34/g' "$FILE"
+          sed -i 's/compileSdk flutter\.compileSdkVersion/compileSdk = 34/g' "$FILE"
+          sed -i 's/targetSdk = flutter\.targetSdkVersion/targetSdk = 34/g' "$FILE"
+          sed -i 's/targetSdk flutter\.targetSdkVersion/targetSdk = 34/g' "$FILE"
+          sed -i 's/minSdk = flutter\.minSdkVersion/minSdk = 21/g' "$FILE"
+          sed -i 's/minSdk flutter\.minSdkVersion/minSdk = 21/g' "$FILE"
 
-          echo "Editing $FILE"
-          sed -i 's/compileSdk = [0-9]*/compileSdk = 34/g' "$FILE" || true
-          sed -i 's/targetSdk = [0-9]*/targetSdk = 34/g' "$FILE" || true
-          sed -i 's/minSdk = [0-9]*/minSdk = 21/g' "$FILE" || true
-          sed -i 's/compileSdk [0-9]*/compileSdk 34/g' "$FILE" || true
-          sed -i 's/targetSdk [0-9]*/targetSdk 34/g' "$FILE" || true
-          sed -i 's/minSdk [0-9]*/minSdk 21/g' "$FILE" || true
+          # Если там просто цифры с минусом или старые значения — принудительно ставим 34
+          sed -i 's/compileSdk = [0-9]*/compileSdk = 34/g' "$FILE"
+          sed -i 's/targetSdk = [0-9]*/targetSdk = 34/g' "$FILE"
+          sed -i 's/minSdk = [0-9]*/minSdk = 21/g' "$FILE"
 
           echo "android.useAndroidX=true" >> android/gradle.properties
           echo "android.enableJetifier=true" >> android/gradle.properties
