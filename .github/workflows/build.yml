@@ -69,5 +69,3 @@ jobs:
         with:
           name: app-debug
           path: build/app/outputs/flutter-apk/app-debug.apk
-          name: app-debug
-          path: build/app/outputs/flutter-apk/app-debug.apk
